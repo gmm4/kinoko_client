@@ -166,3 +166,58 @@ void PatchCall(uintptr_t pAddress, uintptr_t pDestination) {
 void PatchRetZero(uintptr_t pAddress) {
     PatchStr(pAddress, "\x33\xC0\xC3");
 }
+
+// PatchStr for wchar_t version
+void PatchStr(uintptr_t pAddress, const wchar_t* sValue) {
+    size_t uSize = (wcslen(sValue) + 1) * sizeof(wchar_t);
+    DWORD flOldProtect;
+    VirtualProtect(reinterpret_cast<LPVOID>(pAddress), uSize, PAGE_EXECUTE_READWRITE, &flOldProtect);
+    CopyMemory(reinterpret_cast<PVOID>(pAddress), sValue, uSize);
+    VirtualProtect(reinterpret_cast<LPVOID>(pAddress), uSize, flOldProtect, &flOldProtect);
+}
+
+// PatchStr for wchar_t version with query of Memory Protect Mode before modifying & restoring
+void SmartPatchStr(uintptr_t pAddress, const wchar_t* sValue) {
+    size_t uSize = (wcslen(sValue) + 1) * sizeof(wchar_t);
+    DWORD flOldProtect = 0;
+    bool bNeedsRestore = false;
+    MEMORY_BASIC_INFORMATION mbi;
+    if (VirtualQuery(reinterpret_cast<LPCVOID>(pAddress), &mbi, sizeof(mbi))) {
+        if (!(mbi.Protect & (PAGE_READWRITE | PAGE_EXECUTE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_WRITECOPY))) {
+            VirtualProtect(reinterpret_cast<LPVOID>(pAddress), uSize, PAGE_EXECUTE_READWRITE, &flOldProtect);
+            bNeedsRestore = true;
+        }
+    }
+    CopyMemory(reinterpret_cast<PVOID>(pAddress), sValue, uSize);
+    if (bNeedsRestore)
+        VirtualProtect(reinterpret_cast<LPVOID>(pAddress), uSize, flOldProtect, &flOldProtect);
+}
+
+// Automatically patch Jmp and Nop, operate new OpCode then jmp back
+void PatchExtended(uintptr_t pAddress, size_t uOriginalLen, const char* sNewOpCode, size_t uNewOpCpde) {
+    if (uOriginalLen < 5) // Not enough space for PatchJmp
+        return;
+    // Process 1, Alloc memory for new opcode
+    size_t uTotalNewOpCodeSize = uNewOpCpde + 5;
+    uintptr_t pNewOpCode = (uintptr_t)VirtualAlloc(NULL, uTotalNewOpCodeSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    if (pNewOpCode == 0) // Alloc fails
+        return;
+    // Process 2, Write new opcode
+    CopyMemory(reinterpret_cast<PVOID>(pNewOpCode), sNewOpCode, uNewOpCpde);
+    // Process 3, Write jmp back at the end of new opcode
+    uintptr_t pReturnAddress = pAddress + uOriginalLen;
+    int32_t iRelativeReturnJmp = pReturnAddress - (pNewOpCode + uTotalNewOpCodeSize);
+    uint8_t* pReturnJmp = reinterpret_cast<uint8_t*>(pNewOpCode + uNewOpCpde);
+    pReturnJmp[0] = 0xE9;
+    memcpy(&pReturnJmp[1], &iRelativeReturnJmp, sizeof(int32_t));
+    // Process 4, Write jmp to new opcode
+    DWORD flOldProtect;
+    VirtualProtect(reinterpret_cast<LPVOID>(pAddress), uOriginalLen, PAGE_EXECUTE_READWRITE, &flOldProtect);
+    int32_t iRelativeNewOpCodeJmp = pNewOpCode - (pAddress + 5);
+    uint8_t* pOriginalJmp = reinterpret_cast<uint8_t*>(pAddress);
+    pOriginalJmp[0] = 0xE9;
+    memcpy(&pOriginalJmp[1], &iRelativeNewOpCodeJmp, sizeof(int32_t));
+    if (uOriginalLen > 5)
+        FillMemory(reinterpret_cast<PVOID>(pAddress + 5), uOriginalLen - 5, 0x90);
+    VirtualProtect(reinterpret_cast<LPVOID>(pAddress), uOriginalLen, flOldProtect, &flOldProtect);
+}

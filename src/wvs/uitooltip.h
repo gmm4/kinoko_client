@@ -7,6 +7,11 @@ class CUIToolTip {
 public:
     uint8_t padding[0xA48 - sizeof(void**)];
 
+    MEMBER_AT(int, 0x08, m_nHeight);
+    MEMBER_AT(int, 0x0C, m_nWidth);
+    MEMBER_AT(IWzGr2DLayerPtr, 0x10, m_pLayer);
+
+
     CUIToolTip() {
         reinterpret_cast<void(__thiscall*)(CUIToolTip*)>(0x008839C0)(this);
     }

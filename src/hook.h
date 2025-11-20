@@ -44,6 +44,10 @@ void AttachSystemOptionMod();
 void AttachTemporaryStatMod();
 void AttachElementalDamageMod();
 void AttachExceptionHandler();
+void AttachUIReplacement();
+void AttachEquipSkill();
+void AttachF12test();
+void AttachSlowMotion();
 
 inline void AttachClientHooks() {
     AttachClientBypass();
@@ -54,6 +58,10 @@ inline void AttachClientHooks() {
     AttachTemporaryStatMod();
     AttachElementalDamageMod();
     AttachExceptionHandler();
+    AttachUIReplacement();
+    AttachEquipSkill();
+    AttachF12test();
+    AttachSlowMotion();
 }
 
 
@@ -88,3 +96,9 @@ void PatchNop(uintptr_t pAddress, uintptr_t pDestination);
 void PatchCall(uintptr_t pAddress, uintptr_t pDestination);
 
 void PatchRetZero(uintptr_t pAddress);
+
+void PatchStr(uintptr_t uAddress, const wchar_t* sValue);
+
+void SmartPatchStr(uintptr_t pAddress, const wchar_t* sValue);
+
+void PatchExtended(uintptr_t uAddress, size_t uOriginalLen, const char* sNewOpCode, size_t uNewOpCpde);

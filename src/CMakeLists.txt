@@ -13,7 +13,13 @@ add_library(injector SHARED
         elementaldamage.cpp
         walker.cpp
         debug.cpp
-)
+        "uiReplacement.cpp" 
+        "uiReplacement.h"
+        "equipSkill.cpp" 
+        "wvs/itemslot.h"
+        "f12test.cpp"
+ "slowMotion.cpp" "common/cuistatusbar.h")
+
 
 target_precompile_headers(injector PRIVATE pch.h)
 

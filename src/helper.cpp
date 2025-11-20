@@ -180,10 +180,10 @@ void AttachClientHelper() {
     PatchCall(0x009336D3, reinterpret_cast<uintptr_t>(&CUserLocal__Jump_hook));
 
     ATTACH_HOOK(CVecCtrl__SetImpactNext, CVecCtrl__SetImpactNext_hook); // vertical double jump
-    ATTACH_HOOK(CItemInfo__GetMapString, CItemInfo__GetMapString_hook); // append map ID to map name
-    ATTACH_HOOK(CItemInfo__GetItemDesc, CItemInfo__GetItemDesc_hook);   // append item ID to item description
-    ATTACH_HOOK(CSkillInfo__LoadSkill, CSkillInfo__LoadSkill_hook);     // append skill ID to skill description
-    ATTACH_HOOK(get_weapon_attack_speed, get_weapon_attack_speed_hook); // append attack speed value to weapon speed string
+    //ATTACH_HOOK(CItemInfo__GetMapString, CItemInfo__GetMapString_hook); // append map ID to map name
+    //ATTACH_HOOK(CItemInfo__GetItemDesc, CItemInfo__GetItemDesc_hook);   // append item ID to item description
+    //ATTACH_HOOK(CSkillInfo__LoadSkill, CSkillInfo__LoadSkill_hook);     // append skill ID to skill description
+    //ATTACH_HOOK(get_weapon_attack_speed, get_weapon_attack_speed_hook); // append attack speed value to weapon speed string
 
-    PatchJmp(CUIQuestInfoDetail__Draw_jmp, reinterpret_cast<uintptr_t>(&CUIQuestInfoDetail__Draw_hook)); // replace "Low Level Quest"
+    //PatchJmp(CUIQuestInfoDetail__Draw_jmp, reinterpret_cast<uintptr_t>(&CUIQuestInfoDetail__Draw_hook)); // replace "Low Level Quest"
 }
